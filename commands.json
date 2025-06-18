@@ -1,0 +1,405 @@
+{
+  "network.get_ip_config": {
+    "description": "Показать конфигурацию IP",
+    "phrases": ["покажи ip", "конфигурация ip", "ip адрес", "сетевые настройки"],
+    "params": {},
+    "templates": { "win": "ipconfig /all", "astro": "ip -c addr show" }
+  },
+  "network.change_ip_static": {
+    "description": "Изменить IP-адрес (Статика)",
+    "phrases": ["измени ip", "смени ip", "установи статический ip"],
+    "params": {
+      "interface": { "type": "string", "required": true },
+      "ip": { "type": "ip", "required": true },
+      "mask": { "type": "ip_mask", "required": true },
+      "gateway": { "type": "ip", "required": false }
+    },
+    "templates": {
+      "win": "netsh interface ip set address name=\"{interface}\" static {ip} {mask} {gateway}",
+      "astro": "sudo ip addr add {ip}/{mask} dev {interface} && sudo ip route add default via {gateway}"
+    }
+  },
+  "network.set_ip_dhcp": {
+    "description": "Получить IP по DHCP",
+    "phrases": ["получи ip по dhcp", "включи dhcp"],
+    "params": { "interface": { "type": "string", "required": true } },
+    "templates": {
+      "win": "netsh interface ip set address name=\"{interface}\" dhcp",
+      "astro": "sudo dhclient -r {interface} && sudo dhclient {interface}"
+    }
+  },
+  "network.show_dns_cache": {
+    "description": "Показать кэш DNS",
+    "phrases": ["покажи кэш dns", "отобрази dns"],
+    "params": {},
+    "templates": { "win": "ipconfig /displaydns", "astro": "resolvectl statistics" }
+  },
+  "network.clear_dns_cache": {
+    "description": "Очистить кэш DNS",
+    "phrases": ["очисти кэш dns", "сбрось dns"],
+    "params": {},
+    "templates": { "win": "ipconfig /flushdns", "astro": "sudo resolvectl flush-caches" }
+  },
+  "network.set_dns": {
+    "description": "Установить DNS-серверы",
+    "phrases": ["установи dns", "пропиши dns"],
+    "params": {
+      "interface": { "type": "string", "required": true },
+      "dns1": { "type": "ip", "required": true },
+      "dns2": { "type": "ip", "required": false }
+    },
+    "templates": {
+      "win": "netsh interface ip set dns name=\"{interface}\" static {dns1} && netsh interface ip add dns name=\"{interface}\" {dns2} index=2",
+      "astro": "echo 'nameserver {dns1}\\nnameserver {dns2}' | sudo tee /etc/resolv.conf"
+    }
+  },
+  "network.ping": {
+    "description": "Пинг хоста",
+    "phrases": ["пинг", "пропингуй хост"],
+    "params": { "host": { "type": "hostname_or_ip", "required": true } },
+    "templates": { "win": "ping -n 4 {host}", "astro": "ping -c 4 {host}" }
+  },
+  "network.traceroute": {
+    "description": "Трассировка маршрута",
+    "phrases": ["трассировка", "traceroute"],
+    "params": { "host": { "type": "hostname_or_ip", "required": true } },
+    "templates": { "win": "tracert {host}", "astro": "traceroute {host}" }
+  },
+  "network.show_connections": {
+    "description": "Показать сетевые подключения",
+    "phrases": ["сетевые подключения", "покажи порты"],
+    "params": {},
+    "templates": { "win": "netstat -ano", "astro": "sudo ss -tulnp" }
+  },
+  "network.firewall_status": {
+    "description": "Показать статус Firewall",
+    "phrases": ["статус firewall", "статус брандмауэра"],
+    "params": {},
+    "templates": { "win": "netsh advfirewall show allprofiles", "astro": "sudo ufw status verbose" }
+  },
+  "network.toggle_firewall": {
+    "description": "Включить/Выключить Firewall",
+    "phrases": ["включи firewall", "выключи firewall"],
+    "params": { "state": { "type": "choice", "choices": ["on", "off"], "required": true } },
+    "templates": {
+      "win": "netsh advfirewall set allprofiles state {state}",
+      "astro": "sudo ufw {state}"
+    }
+  },
+  "network.allow_port": {
+    "description": "Разрешить порт в Firewall",
+    "phrases": ["разреши порт", "открой порт"],
+    "params": { "port": { "type": "port", "required": true }, "protocol": {"type": "choice", "choices": ["tcp", "udp", "any"], "required": false, "default": "any"} },
+    "templates": {
+      "win": "netsh advfirewall firewall add rule name=\"Open Port {port}\" dir=in action=allow protocol={protocol} localport={port}",
+      "astro": "sudo ufw allow {port}/{protocol}"
+    }
+  },
+  "network.deny_port": {
+    "description": "Запретить порт в Firewall",
+    "phrases": ["запрети порт", "закрой порт"],
+    "params": { "port": { "type": "port", "required": true } },
+    "templates": {
+      "win": "netsh advfirewall firewall add rule name=\"Block Port {port}\" dir=in action=block protocol=any localport={port}",
+      "astro": "sudo ufw deny {port}"
+    }
+  },
+  "network.show_routing_table": {
+    "description": "Показать таблицу маршрутизации",
+    "phrases": ["таблица маршрутизации", "покажи маршруты"],
+    "params": {},
+    "templates": { "win": "route print", "astro": "ip route show" }
+  },
+  "network.add_route": {
+    "description": "Добавить статический маршрут",
+    "phrases": ["добавь маршрут", "новый маршрут"],
+    "params": {
+      "destination": { "type": "ip", "required": true },
+      "mask": { "type": "ip_mask", "required": true },
+      "gateway": { "type": "ip", "required": true }
+    },
+    "templates": {
+      "win": "route add {destination} mask {mask} {gateway}",
+      "astro": "sudo ip route add {destination}/{mask} via {gateway}"
+    }
+  },
+  "network.del_route": {
+    "description": "Удалить статический маршрут",
+    "phrases": ["удали маршрут"],
+    "params": { "destination": { "type": "ip", "required": true } },
+    "templates": { "win": "route delete {destination}", "astro": "sudo ip route del {destination}" }
+  },
+  "network.check_port": {
+    "description": "Проверить доступность порта",
+    "phrases": ["проверь порт"],
+    "params": {
+      "host": { "type": "hostname_or_ip", "required": true },
+      "port": { "type": "port", "required": true }
+    },
+    "templates": { "win": "powershell Test-NetConnection -ComputerName {host} -Port {port}", "astro": "nc -vz {host} {port}" }
+  },
+  "network.get_external_ip": {
+    "description": "Узнать внешний IP-адрес",
+    "phrases": ["внешний ip", "мой ip"],
+    "params": {},
+    "templates": { "win": "powershell \"(Invoke-WebRequest -uri 'ifconfig.me/ip').Content\"", "astro": "curl ifconfig.me" }
+  },
+  "system.info": {
+    "description": "Показать информацию о системе",
+    "phrases": ["информация о системе", "инфо о системе"],
+    "params": {},
+    "templates": { "win": "systeminfo", "astro": "uname -a && lsb_release -a" }
+  },
+  "system.uptime": {
+    "description": "Показать время работы (Uptime)",
+    "phrases": ["время работы", "uptime"],
+    "params": {},
+    "templates": { "win": "powershell \"(Get-Date) - (Get-CimInstance -ClassName Win32_OperatingSystem).LastBootUpTime\"", "astro": "uptime" }
+  },
+  "system.logged_in_users": {
+    "description": "Показать вошедших пользователей",
+    "phrases": ["кто в системе", "вошедшие пользователи"],
+    "params": {},
+    "templates": { "win": "query user", "astro": "who -u" }
+  },
+  "system.get_load": {
+    "description": "Показать текущую загрузку CPU/Памяти",
+    "phrases": ["загрузка системы", "нагрузка на процессор"],
+    "params": {},
+    "templates": { "win": "wmic cpu get loadpercentage && wmic os get freephysicalmemory, totalvisiblememorysize", "astro": "top -bn1 | head -n 5" }
+  },
+  "system.env_vars": {
+    "description": "Показать переменные окружения",
+    "phrases": ["переменные окружения"],
+    "params": {},
+    "templates": { "win": "set", "astro": "env" }
+  },
+  "system.get_datetime": {
+    "description": "Показать дату и время",
+    "phrases": ["какая дата", "текущее время"],
+    "params": {},
+    "templates": { "win": "echo %date% %time%", "astro": "date" }
+  },
+  "system.set_datetime": {
+    "description": "Изменить дату и время",
+    "phrases": ["измени время", "установи дату"],
+    "params": { "datetime": { "type": "string", "required": true, "example": "2025-06-18 19:15:00" } },
+    "templates": { "win": "powershell Set-Date -Date '{datetime}'", "astro": "sudo date -s '{datetime}'" }
+  },
+  "process.list": {
+    "description": "Список запущенных процессов",
+    "phrases": ["список процессов", "покажи процессы"],
+    "params": {},
+    "templates": { "win": "tasklist", "astro": "ps aux" }
+  },
+  "process.kill": {
+    "description": "Завершить процесс (по имени/PID)",
+    "phrases": ["убей процесс", "заверши процесс"],
+    "params": { "id": { "type": "pid_or_name", "required": true } },
+    "templates": { "win": "taskkill /F /IM {id} 2>nul || taskkill /F /PID {id}", "astro": "sudo pkill {id} || sudo kill {id}" }
+  },
+  "process.find_by_port": {
+    "description": "Найти процесс по порту",
+    "phrases": ["найди процесс по порту", "кто слушает порт"],
+    "params": { "port": { "type": "port", "required": true } },
+    "templates": { "win": "netstat -ano | findstr ':{port}'", "astro": "sudo ss -lptn 'sport = :{port}'" }
+  },
+  "disk.usage": {
+    "description": "Показать использование дисков",
+    "phrases": ["использование диска", "место на диске"],
+    "params": {},
+    "templates": { "win": "wmic logicaldisk get size,freespace,caption", "astro": "df -h" }
+  },
+  "disk.list": {
+    "description": "Список подключенных дисков/разделов",
+    "phrases": ["список дисков", "покажи разделы"],
+    "params": {},
+    "templates": { "win": "wmic diskdrive get model,size,partitions", "astro": "lsblk -f" }
+  },
+  "disk.smart_status": {
+    "description": "Проверить состояние диска (S.M.A.R.T.)",
+    "phrases": ["статус smart", "состояние диска"],
+    "params": { "disk": { "type": "string", "required": true, "example": "/dev/sda или 0" } },
+    "templates": { "win": "wmic diskdrive where index={disk} get status", "astro": "sudo smartctl -H {disk}" }
+  },
+  "software.install": {
+    "description": "Установить пакет/программу",
+    "phrases": ["установи программу", "install package"],
+    "params": { "package": { "type": "string", "required": true } },
+    "templates": { "win": "choco install {package} -y", "astro": "sudo apt install {package} -y" }
+  },
+  "software.uninstall": {
+    "description": "Удалить пакет/программу",
+    "phrases": ["удали программу", "uninstall package"],
+    "params": { "package": { "type": "string", "required": true } },
+    "templates": { "win": "choco uninstall {package} -y", "astro": "sudo apt remove {package} -y" }
+  },
+  "software.update_list": {
+    "description": "Обновить список пакетов",
+    "phrases": ["обнови список пакетов", "apt update"],
+    "params": {},
+    "templates": { "win": "choco outdated", "astro": "sudo apt update" }
+  },
+  "software.upgrade_all": {
+    "description": "Обновить установленные пакеты",
+    "phrases": ["обнови все пакеты", "upgrade packages"],
+    "params": {},
+    "templates": { "win": "choco upgrade all -y", "astro": "sudo apt upgrade -y" }
+  },
+  "software.list": {
+    "description": "Список установленных пакетов",
+    "phrases": ["список программ", "list packages"],
+    "params": {},
+    "templates": { "win": "choco list --local-only", "astro": "dpkg -l" }
+  },
+  "software.find": {
+    "description": "Поиск установленного пакета",
+    "phrases": ["найди программу", "find package"],
+    "params": { "name": { "type": "string", "required": true } },
+    "templates": { "win": "choco list --local-only | findstr /i {name}", "astro": "dpkg -l | grep {name}" }
+  },
+  "users.add": {
+    "description": "Добавить локального пользователя",
+    "phrases": ["добавь пользователя", "создай юзера"],
+    "params": {
+      "username": { "type": "username", "required": true },
+      "password": { "type": "password", "required": true }
+    },
+    "templates": { "win": "net user {username} {password} /add", "astro": "sudo useradd -m -p $(openssl passwd -1 {password}) {username}" }
+  },
+  "users.delete": {
+    "description": "Удалить локального пользователя",
+    "phrases": ["удали пользователя"],
+    "params": { "username": { "type": "username", "required": true } },
+    "templates": { "win": "net user {username} /delete", "astro": "sudo userdel -r {username}" }
+  },
+  "users.change_password": {
+    "description": "Изменить пароль локального пользователя",
+    "phrases": ["смени пароль"],
+    "params": {
+      "username": { "type": "username", "required": true },
+      "new_password": { "type": "password", "required": true }
+    },
+    "templates": { "win": "net user {username} {new_password}", "astro": "echo '{username}:{new_password}' | sudo chpasswd" }
+  },
+  "users.add_to_group": {
+    "description": "Добавить пользователя в локальную группу",
+    "phrases": ["добавь в группу"],
+    "params": {
+      "username": { "type": "username", "required": true },
+      "group": { "type": "string", "required": true }
+    },
+    "templates": { "win": "net localgroup {group} {username} /add", "astro": "sudo usermod -aG {group} {username}" }
+  },
+  "users.remove_from_group": {
+    "description": "Удалить пользователя из локальной группы",
+    "phrases": ["удали из группы"],
+    "params": {
+      "username": { "type": "username", "required": true },
+      "group": { "type": "string", "required": true }
+    },
+    "templates": { "win": "net localgroup {group} {username} /delete", "astro": "sudo gpasswd -d {username} {group}" }
+  },
+  "users.list": {
+    "description": "Список локальных пользователей",
+    "phrases": ["список пользователей"],
+    "params": {},
+    "templates": { "win": "net user", "astro": "getent passwd" }
+  },
+  "users.list_groups": {
+    "description": "Список локальных групп",
+    "phrases": ["список групп"],
+    "params": {},
+    "templates": { "win": "net localgroup", "astro": "getent group" }
+  },
+  "services.start": {
+    "description": "Запустить службу",
+    "phrases": ["запусти службу", "start service"],
+    "params": { "service": { "type": "string", "required": true } },
+    "templates": { "win": "net start {service}", "astro": "sudo systemctl start {service}" }
+  },
+  "services.stop": {
+    "description": "Остановить службу",
+    "phrases": ["останови службу", "stop service"],
+    "params": { "service": { "type": "string", "required": true } },
+    "templates": { "win": "net stop {service}", "astro": "sudo systemctl stop {service}" }
+  },
+  "services.restart": {
+    "description": "Перезапустить службу",
+    "phrases": ["перезапусти службу", "restart service"],
+    "params": { "service": { "type": "string", "required": true } },
+    "templates": { "win": "powershell Restart-Service -Name {service}", "astro": "sudo systemctl restart {service}" }
+  },
+  "services.status": {
+    "description": "Получить статус службы",
+    "phrases": ["статус службы", "service status"],
+    "params": { "service": { "type": "string", "required": true } },
+    "templates": { "win": "sc query {service}", "astro": "systemctl status {service}" }
+  },
+  "services.list": {
+    "description": "Список служб",
+    "phrases": ["список служб", "list services"],
+    "params": {},
+    "templates": { "win": "sc query state=all", "astro": "systemctl list-units --type=service --all" }
+  },
+  "logs.show_system": {
+    "description": "Показать последние системные логи",
+    "phrases": ["покажи системные логи", "системный журнал"],
+    "params": { "lines": { "type": "number", "required": false, "default": "50" } },
+    "templates": {
+      "win": "powershell Get-EventLog -LogName System -Newest {lines}",
+      "astro": "journalctl -n {lines}"
+    }
+  },
+  "logs.search": {
+    "description": "Поиск в логах по ключевому слову",
+    "phrases": ["найди в логах", "поиск в журнале"],
+    "params": { "keyword": { "type": "string", "required": true } },
+    "templates": {
+      "win": "powershell Get-EventLog -LogName System | Where-Object {{ $_.Message -like '*{keyword}*' }}",
+      "astro": "journalctl | grep '{keyword}'"
+    }
+  },
+  "fs.find_files": {
+    "description": "Найти файлы",
+    "phrases": ["найди файл"],
+    "params": {
+      "path": { "type": "filepath", "required": true, "default": "." },
+      "name": { "type": "string", "required": true }
+    },
+    "templates": { "win": "dir {path}\\{name} /s /b", "astro": "find {path} -name '{name}'" }
+  },
+  "fs.view_file": {
+    "description": "Посмотреть содержимое файла",
+    "phrases": ["покажи файл", "содержимое файла"],
+    "params": { "filepath": { "type": "filepath", "required": true } },
+    "templates": { "win": "type \"{filepath}\"", "astro": "cat \"{filepath}\"" }
+  },
+  "fs.checksum": {
+    "description": "Подсчитать контрольную сумму файла",
+    "phrases": ["контрольная сумма", "хэш файла"],
+    "params": {
+      "filepath": { "type": "filepath", "required": true },
+      "algorithm": { "type": "choice", "choices": ["MD5", "SHA1", "SHA256"], "required": false, "default": "SHA256" }
+    },
+    "templates": { "win": "certutil -hashfile \"{filepath}\" {algorithm}", "astro": "{algorithm}sum \"{filepath}\"" }
+  },
+  "power.reboot": {
+    "description": "Перезагрузить систему",
+    "phrases": ["перезагрузка", "ребут"],
+    "params": {},
+    "templates": { "win": "shutdown /r /t 1", "astro": "sudo reboot" }
+  },
+  "power.shutdown": {
+    "description": "Выключить систему",
+    "phrases": ["выключить", "шатдаун"],
+    "params": {},
+    "templates": { "win": "shutdown /s /t 1", "astro": "sudo shutdown now" }
+  },
+  "system.set_hostname": {
+    "description": "Изменить имя хоста",
+    "phrases": ["измени имя хоста", "смени hostname"],
+    "params": { "name": { "type": "string", "required": true } },
+    "templates": { "win": "wmic computersystem where name=\"%computername%\" call rename name=\"{name}\"", "astro": "sudo hostnamectl set-hostname {name}" }
+  }
+}

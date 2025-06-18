@@ -1,0 +1,5 @@
+PyQt5==5.15.10
+bcrypt==4.1.2
+cryptography==42.0.5
+pymorphy2==0.9.1
+rapidfuzz==3.6.2
